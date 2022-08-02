@@ -10,6 +10,7 @@ Do not require to have a local copy of the GitHub repository.
 
 Dependencies: pip install requests
 """
+
 import sys
 import requests
 import json
@@ -22,8 +23,7 @@ CS_BASE_URL = "https://cheatsheetseries.owasp.org/cheatsheets/%s.html"
 response = requests.get(
     "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/Index.md")
 if response.status_code != 200:
-    print("Cannot load the INDEX content: HTTP %s received!" %
-          response.status_code)
+    print(f"Cannot load the INDEX content: HTTP {response.status_code} received!")
     sys.exit(1)
 else:
     data = OrderedDict({})

@@ -102,8 +102,6 @@ The first layer of validation can be applied using libraries that ensure the sec
     - As allow listing is used here, any bypass tentative will be blocked during the comparison against the allowed list of IP addresses.
 - **JavaScript**: Library [ip-address](https://www.npmjs.com/package/ip-address).
     - **It is NOT exposed** to bypass using Hex, Octal, Dword, URL and Mixed encoding.
-- **Python**: Module [ipaddress](https://docs.python.org/3/library/ipaddress.html) from the SDK.
-    - **It is NOT exposed** to bypass using Hex, Octal, Dword, URL and Mixed encoding.
 - **Ruby**: Class [IPAddr](https://ruby-doc.org/stdlib-2.0.0/libdoc/ipaddr/rdoc/IPAddr.html) from the SDK.
     - **It is NOT exposed** to bypass using Hex, Octal, Dword, URL and Mixed encoding.
 
@@ -257,7 +255,7 @@ In the schema below, a Firewall component is leveraged to limit the application'
 
 ![Case 1 for Network layer protection about flows that we want to prevent](../assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Case1_NetworkLayer_PreventFlow.png)
 
-[Network segregation](https://www.mwrinfosecurity.com/our-thinking/making-the-case-for-network-segregation) (see this set of [implementation advice](https://www.cyber.gov.au/publications/network-segmentation-and-segregation)) can also be leveraged and **is highly recommended in order to block illegitimate calls directly at network level itself**.
+[Network segregation](https://www.mwrinfosecurity.com/our-thinking/making-the-case-for-network-segregation) (see this set of [implementation advice](https://www.cyber.gov.au/acsc/view-all-content/publications/implementing-network-segmentation-and-segregation) can also be leveraged and **is highly recommended in order to block illegitimate calls directly at network level itself**.
 
 ### Case 2 - Application can send requests to ANY external IP address or domain name
 
@@ -285,7 +283,7 @@ Taking into consideration the same assumption in the following [example](Server_
 
 ##### Application layer
 
-Like for the case [n°1](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#case-1---application-can-send-request-only-to-identified-and-trusted-applications), it is assumed that the `IP Address` or `domain name` is required to create the request that will be sent to the *TargetApplication*.
+Like for the case [n°1](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#case-1-application-can-send-request-only-to-identified-and-trusted-applications), it is assumed that the `IP Address` or `domain name` is required to create the request that will be sent to the *TargetApplication*.
 
 The first validation on the input data presented in the case [n°1](Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md#application-layer) on the 3 types of data will be the same for this case **BUT the second validation will differ**. Indeed, here we must use the block-list approach.
 
@@ -305,66 +303,6 @@ The first validation on the input data presented in the case [n°1](Server_Side_
 5. The application will receive the token itself via a dedicated input parameter for which it will only allow the characters set `[a-zA-Z0-9]{20}`.
 6. The application will receive and validate (from a security point of view) any business data needed to perform a valid call.
 7. The application will build the HTTP POST request **using only validated information** and will send it (*don't forget to disable the support for [redirection](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) in the web client used*).
-
-**Hints for the step 2 regarding the verification on an IP address:**
-
-As mentioned above, not every SDK provide a built-in feature to verify if an IP (V4 + V6) is private/public. So, the following approach can be used based on a block list composed of the private IP ranges (*example is given in python in order to be easy to understand and portable to others technologies*) :
-
-```python
-def is_private_ip(ip_address):
-    is_private = False
-    """
-    Determine if a IP address provided is a private one.
-    Return TRUE if it's the case, FALSE otherwise.
-    """
-    # Build the list of IP prefix for V4 and V6 addresses
-    ip_prefix = []
-    # Add prefix for loopback addresses
-    ip_prefix.append("127.")
-    ip_prefix.append("0.")
-    # Add IP V4 prefix for private addresses
-    # See https://en.wikipedia.org/wiki/Private_network
-    ip_prefix.append("10.")
-    ip_prefix.append("172.16.")
-    ip_prefix.append("172.17.")
-    ip_prefix.append("172.18.")
-    ip_prefix.append("172.19.")
-    ip_prefix.append("172.20.")
-    ip_prefix.append("172.21.")
-    ip_prefix.append("172.22.")
-    ip_prefix.append("172.23.")
-    ip_prefix.append("172.24.")
-    ip_prefix.append("172.25.")
-    ip_prefix.append("172.26.")
-    ip_prefix.append("172.27.")
-    ip_prefix.append("172.28.")
-    ip_prefix.append("172.29.")
-    ip_prefix.append("172.30.")
-    ip_prefix.append("172.31.")
-    ip_prefix.append("192.168.")
-    ip_prefix.append("169.254.")
-    # Add IP V6 prefix for private addresses
-    # See https://en.wikipedia.org/wiki/Unique_local_address
-    # See https://en.wikipedia.org/wiki/Private_network
-    # See https://simpledns.com/private-ipv6
-    ip_prefix.append("fc")
-    ip_prefix.append("fd")
-    ip_prefix.append("fe")
-    ip_prefix.append("ff")
-    ip_prefix.append("::1")
-    # Verify the provided IP address
-    # Remove whitespace characters from the beginning/end of the string
-    # and convert it to lower case
-    # Lower case is for preventing any IPV6 case bypass using mixed case
-    # depending on the source used to get the IP address
-    ip_to_verify = ip_address.strip().lower()
-    # Perform the check against the list of prefix
-    for prefix in ip_prefix:
-        if ip_to_verify.startswith(prefix):
-            is_private = True
-            break
-    return is_private
-```
 
 ##### Network layer
 

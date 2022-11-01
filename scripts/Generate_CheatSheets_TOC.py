@@ -25,12 +25,15 @@ with open("TOC.md", "w") as index_file:
     index_file.write("\n")
     index_file.write(cs_md_link_template % ("Index ASVS", "IndexASVS.md"))
     index_file.write("\n")
+    index_file.write(cs_md_link_template % ("Index ASVS", "IndexMASVS.md"))
+    index_file.write("\n")
     index_file.write(cs_md_link_template % ("Index Proactive Controls", "IndexProactiveControls.md"))
     index_file.write("\n")
     for cheatsheet in cheatsheets:
         if cheatsheet not in [
             "Index.md",
             "IndexASVS.md",
+            "IndexMASVS.md",
             "IndexProactiveControls.md",
             "TOC.md",
         ]:

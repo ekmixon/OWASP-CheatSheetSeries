@@ -9,7 +9,7 @@ This Cheat Sheet provides guidance on the various areas that need to be consider
 - Apply proper [input validation](Input_Validation_Cheat_Sheet.md) checks on all incoming data.
 - Expensive queries will lead to [Denial of Service (DoS)](Denial_of_Service_Cheat_Sheet.md), so add checks to limit or prevent queries that are too expensive.
 - Ensure that the API has proper [access control](Access_Control_Cheat_Sheet.md) checks.
-- Disable insecure default configurations (_e.g._ introspection, GraphiQL, excessive errors, etc.).
+- Disable insecure default configurations (_e.g._ excessive errors, introspection, GraphiQL, etc.).
 
 ## Common Attacks
 
@@ -81,7 +81,7 @@ Here are recommendations specific to GraphQL to limit the potential for DoS:
 
 In GraphQL each query has a depth (_e.g._ nested objects) and each object requested in a query can have an amount specified (_e.g._ 99999999 of an object). By default these can both be unlimited which may lead to a DoS. You should set limits on depth and amount to prevent DoS, but this usually requires a small custom implementation as it is not natively supported by GraphQL. See [this](https://www.apollographql.com/blog/securing-your-graphql-api-from-malicious-queries-16130a324a6b) and [this](https://www.howtographql.com/advanced/4-security/) page for more information about these attacks and how to add depth and amount limiting. Adding [pagination](https://graphql.org/learn/pagination/) can also help performance.
 
-APIs using graphql-java can utilize the built-in [MaxQueryDepthInstrumentation](https://github.com/graphql-java/graphql-java/blob/master/src/main/java/graphql/analysis/MaxQueryDepthInstrumentation.java) for depth limiting. APIs using JavaScript can use [graphql-depth-limit](https://github.com/stems/graphql-depth-limit) to implement depth limiting and [graphql-input-number](https://github.com/joonhocho/graphql-input-number) to implement amount limiting.
+APIs using graphql-java can utilize the built-in [MaxQueryDepthInstrumentation](https://github.com/graphql-java/graphql-java/blob/master/src/main/java/graphql/analysis/MaxQueryDepthInstrumentation.java) for depth limiting. APIs using JavaScript can use [graphql-depth-limit](https://www.npmjs.com/package/graphql-depth-limit) to implement depth limiting and [graphql-input-number](https://github.com/joonhocho/graphql-input-number) to implement amount limiting.
 
 Here is an example of a GraphQL query with depth N:
 
@@ -134,7 +134,7 @@ request.incrementResolverCount =  function () {
   };
 ```
 
-***Java Timeout Example using [Instrumentation](https://www.graphql-java.com/documentation/v11/instrumentation/)***
+***Java Timeout Example using [Instrumentation](https://www.graphql-java.com/documentation/instrumentation)***
 
 ```java
 public class TimeoutInstrumentation extends SimpleInstrumentation {
@@ -272,16 +272,20 @@ Limiting the number of operations that can be batched and run at once is another
 
 By default, most GraphQL implementations have some insecure default configurations which should be changed:
 
-- Disable or restrict Introspection and GraphiQL based on your needs; these should only be used for development purposes.
 - Don't return excessive error messages (_e.g._ disable stack traces and debug mode).
+- Disable or restrict Introspection and GraphiQL based on your needs.
+- Suggestion of mis-typed fields if the introspection is disabled
 
 #### Introspection + GraphiQL
 
-Many implementations of GraphQL have Introspection and GraphiQL enabled by default and leave them accessible without requiring authorization. This is problematic because introspection allows the requester to learn all about supported schema and queries (see a [real-world example](https://hackerone.com/reports/291531) abusing this). Introspection might be how the API owner wants to educate consumers about how to use the API. However, the preferred way to educate consumers about a service is through a separate documentation channel such as a wiki, Git Readme, or readthedocs.
+GraphQL Often comes by default with introspection and/or GraphiQL enabled and not requiring authentication. This allows the consumer of your API to learn everything about your API, schemas, mutations, deprecated fields and sometimes unwanted "private fields".
 
-The safest and usually easiest approach is to just disable introspection and GraphiQL system-wide. See [this page](https://lab.wallarm.com/why-and-how-to-disable-introspection-query-for-graphql-apis/) or consult your GraphQL implementation's documentation to learn how to disable introspection altogether. If your implementation does not natively support disabling introspection or if you would like to allow some consumers/roles to have this access you can build a filter in your service to only allow approved consumers to access the introspection system.
+This might be an intended configuration if your API is designed to be consumed by external clients, but can also be an issue if the API was designed to be used internally only. Although security by obscurity is not recommended, it might be a good idea to consider removing the Introspection to avoid any leak.
+If your API is publicly consumed, you might want to consider disabling it for not authenticated or unauthorized users.
 
-Keep in mind that even if introspection is disabled, attackers can still guess fields by brute forcing them. Furthermore, GraphQL has a built-in feature to return a hint when a field name that the requester provides is similar (but incorrect) to an existing field (_e.g._ request has `usr` and the response will ask `Did you mean "user?"`). You should consider disabling this feature to decrease the exposure, but not all implementations of GraphQL support doing so. [Shapeshifter](https://github.com/szski/shapeshifter) is one tool that [should be able to do this](https://www.youtube.com/watch?v=NPDp7GHmMa0&t=2580).
+For internal API, the easiest approach is to just disable introspection system-wide. See [this page](https://lab.wallarm.com/why-and-how-to-disable-introspection-query-for-graphql-apis/) or consult your GraphQL implementation's documentation to learn how to disable introspection altogether. If your implementation does not natively support disabling introspection or if you would like to allow some consumers/roles to have this access, you can build a filter in your service to only allow approved consumers to access the introspection system.
+
+Keep in mind that even if introspection is disabled, attackers can still guess fields by brute forcing them. Furthermore, GraphQL has a built-in feature to return a hint when a field name that the requester provides is similar (but incorrect) to an existing field (_e.g._ request has `usr` and the response will ask `Did you mean "user?"`). You should consider disabling this feature if you have disabled the introspection, to decrease the exposure, but not all implementations of GraphQL support doing so. [Shapeshifter](https://github.com/szski/shapeshifter) is one tool that [should be able to do this](https://www.youtube.com/watch?v=NPDp7GHmMa0&t=2580).
 
 ***Disable Introspection - Java***
 

@@ -188,7 +188,7 @@ xmlInputFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", fal
 
 ### Oracle DOM Parser
 
-Follow [Oracle reomendation]('https://docs.oracle.com/en/database/oracle/oracle-database/18/adxdk/security-considerations-oracle-xml-developers-kit.html#GUID-45303542-41DE-4455-93B3-854A826EF8BB') e.g.:
+Follow [Oracle recommendation](https://docs.oracle.com/en/database/oracle/oracle-database/18/adxdk/security-considerations-oracle-xml-developers-kit.html#GUID-45303542-41DE-4455-93B3-854A826EF8BB) e.g.:
 
 ``` java
     // Extend oracle.xml.parser.v2.XMLParser
@@ -407,25 +407,35 @@ Castor is a data binding framework for Java. It allows conversion between Java o
 
 ## .NET
 
-The following information for XXE injection in .NET is directly from this [web application of unit tests by Dean Fleming](https://github.com/deanf1/dotnet-security-unit-tests).
+The following, up to date information for XXE injection in .NET is directly from this [web application of unit tests by Dean Fleming](https://github.com/deanf1/dotnet-security-unit-tests). This web application covers all currently supported .NET XML parsers, and has test cases for each demonstrating when they are safe from XXE injection and when they are not, but tests are only with injection from file and not direct DTD (used by DoS attacks).
 
-This web application covers all currently supported .NET XML parsers, and has test cases for each demonstrating when they are safe from XXE injection and when they are not, but tests are only with injection from file and not direct DTD (used by DoS attacks).
+For DoS attacks using a direct DTD (such as the [Billion laughs attack](https://en.wikipedia.org/wiki/Billion_laughs_attack)), a [separate testing application from Josh Grossman at Bounce Security](https://github.com/BounceSecurity/BillionLaughsTester) has been created to verify that .NET >=4.5.2 is safe from these attacks.
 
-Previously, this information was based on [James Jardine's excellent .NET XXE article](https://www.jardinesoftware.net/2016/05/26/xxe-and-net/).
+Previously, this information was based on some older articles which may not be 100% accurate including:
 
-It originally provided more recent and more detailed information than the older article from [Microsoft on how to prevent XXE and XML Denial of Service in .NET](http://msdn.microsoft.com/en-us/magazine/ee335713.aspx), however, it has some inaccuracies that the web application covers.
+- [James Jardine's excellent .NET XXE article](https://www.jardinesoftware.net/2016/05/26/xxe-and-net/).
+- [Guidance from Microsoft on how to prevent XXE and XML Denial of Service in .NET](http://msdn.microsoft.com/en-us/magazine/ee335713.aspx).
 
-The following table lists all supported .NET XML parsers and their default safety levels:
+The following table lists all supported .NET XML parsers and their default safety levels. Note that in .NET Framework ≥4.5.2 **in all cases** if a DoS attempt is performed, an exception is thrown due to the expanded XML being too many characters.
 
-| Attack Type             | LINQ to XML     | XmlDictionaryReader   | XmlDocument (4.5.2-)  | XmlDocument (4.5.2+)  | XmlNodeReader    | XmlReader  | XmlTextReader(4.5.2-) | XmlTextReader(4.5.2+) | XPathNavigator(4.5.2-)    | XPathNavigator(4.5.2+)    | XslCompiledTransform  |
-|-------------------------|-----------------|-----------------------|-----------------------|-----------------------|------------------|------------|-----------------------|-----------------------|---------------------------|---------------------------|-----------------------|
-| External entity Attacks | Safe            | Safe                  | Vulnerable            | Safe                  | Safe             | Safe       | Vulnerable            | Safe                  | Vulnerable                | Safe                      | Safe                  |
-| Billion Laughs          | Vulnerable      | N.a.                  | Vulnerable            | Vulnerable            | Safe             | Safe       | Vulnerable            | Vulnerable            | Vulnerable                | Vulnerable                | Safe                  |
+Table explanation:
+
+- ✅ = Not Vulnerable
+- ❌ = Vulnerable
+- ❓ = Not clear
+
+| Attack Type             | .NET Framework Version | [XDocument (Linq to XML)](#linq-to-xml)    | [XmlDictionaryReader](#xmldictionaryreader)   | [XmlDocument](#xmldocument) | [XmlNodeReader](#xmlnodereader)    | [XmlReader](#xmlreader)  | [XmlTextReader](#xmltextreader) | [XPathNavigator](#xpathnavigator) | [XslCompiledTransform](#xslcompiledtransform)  |
+|-|-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| **External entity Attacks** | <4.5.2 | ✅ | ✅  | ❌ | ✅  | ✅  | ❌ | ❌ | ✅ |
+|                             | ≥4.5.2 | ✅ | ✅  | ✅ | ✅  | ✅  | ✅ | ✅ | ✅ |
+| **Billion Laughs**          | <4.5.2 | ❓ | ✅  | ❌ | ✅  | ✅  | ❌ | ❌ | ✅ |
+|                             | ≥4.5.2 | ✅ | ✅\* | ✅ | ✅\* | ✅\* | ✅ | ✅ | ✅ |
+
+\* For .NET Framework Versions ≥4.5.2, these libraries won't even process the in-line DTD by default. Even if you change the default to allow processing a DTD, if a DoS attempt is performed an exception will still be thrown as documented above.
 
 ### LINQ to XML
 
-Both the `XElement` and `XDocument` objects in the `System.Xml.Linq` library are safe from XXE injection drom external file by default, but not for DoS attack. `XElement` parses only the elements within the XML file, so DTDs are ignored altogether. `XDocument` has XmlResolver [disabled by default](https://docs.microsoft.com/en-us/dotnet/standard/linq/linq-xml-security), but DTDs [enable by default](https://referencesource.microsoft.com/#System.Xml.Linq/System/Xml/Linq/XLinq.cs,71f4626a3d6f9bad). so it's safe from SSRF but **not** [Billion laughs attack](https://en.wikipedia.org/wiki/Billion_laughs_attack).
-For made safe from between attack types follow [Microsoft on how to prevent XXE and XML Denial of Service in .NET](http://msdn.microsoft.com/en-us/magazine/ee335713.aspx)
+Both the `XElement` and `XDocument` objects in the `System.Xml.Linq` library are safe from XXE injection from external file and DoS attack by default. `XElement` parses only the elements within the XML file, so DTDs are ignored altogether. `XDocument` has XmlResolver [disabled by default](https://docs.microsoft.com/en-us/dotnet/standard/linq/linq-xml-security) so it's safe from SSRF. Whilst DTDs are [enabled by default](https://referencesource.microsoft.com/#System.Xml.Linq/System/Xml/Linq/XLinq.cs,71f4626a3d6f9bad), from Framework versions ≥4.5.2, it is **not** vulnerable to DoS as noted but it may be vulnerable in earlier Framework versions. For more information, see [Microsoft's guidance on how to prevent XXE and XML Denial of Service in .NET](http://msdn.microsoft.com/en-us/magazine/ee335713.aspx)
 
 ### XmlDictionaryReader
 
@@ -452,6 +462,8 @@ The following example shows how it is made safe:
    Console.ReadLine();
  }
 ```
+
+For .NET Framework version ≥4.5.2, this is **safe by default**.
 
 `XmlDocument` can become unsafe if you create your own nonnull `XmlResolver` with default or unsafe settings. If you need to enable DTD processing, instructions on how to do so safely are described in detail in the [referenced MSDN article](https://msdn.microsoft.com/en-us/magazine/ee335713.aspx).
 
@@ -505,7 +517,7 @@ Alternatively, you can set the `DtdProcessing` property to `Ignore`, which will 
 
 #### .NET 4.5.2 and later
 
-In .NET Framework versions 4.5.2 and up, `XmlTextReader`'s internal `XmlResolver` is set to null by default, making the `XmlTextReader` ignore DTDs by default. The `XmlTextReader` can become unsafe if if you create your own nonnull `XmlResolver` with default or unsafe settings.
+In .NET Framework versions 4.5.2 and up, `XmlTextReader`'s internal `XmlResolver` is set to null by default, making the `XmlTextReader` ignore DTDs by default. The `XmlTextReader` can become unsafe if you create your own nonnull `XmlResolver` with default or unsafe settings.
 
 ### XPathNavigator
 
@@ -523,6 +535,8 @@ XPathDocument doc = new XPathDocument(reader);
 XPathNavigator nav = doc.CreateNavigator();
 string xml = nav.InnerXml.ToString();
 ```
+
+For .NET Framework version ≥4.5.2, XPathNavigator is **safe by default**.
 
 ### XslCompiledTransform
 

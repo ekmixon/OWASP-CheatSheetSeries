@@ -23,7 +23,7 @@ The terms "SSL", "SSL/TLS" and "TLS" are frequently used interchangeably, and in
 
 ### Only Support Strong Protocols
 
-The SSL protocols have a large number of weaknesses, and should not be used in any circumstances. General purpose web applications should only support TLS 1.2 and TLS 1.3, with all other protocols disabled. Where it is known that a web server must support legacy clients with unsupported an insecure browsers (such as Internet Explorer 10), it may be necessary to enable TLS 1.0 to provide support.
+The SSL protocols have a large number of weaknesses, and should not be used in any circumstances. General purpose web applications should default to TLS 1.3 (support TLS 1.2 if necessary) with all other protocols disabled. Where it is known that a web server must support legacy clients with unsupported an insecure browsers (such as Internet Explorer 10), it may be necessary to enable TLS 1.0 to provide support.
 
 Where legacy protocols are required, the ["TLS_FALLBACK_SCSV" extension](https://tools.ietf.org/html/rfc7507) should be enabled in order to prevent downgrade attacks against clients.
 
@@ -63,7 +63,7 @@ As well as the vulnerabilities in the SSL and TLS protocols, there have also bee
 
 ### Test the Server Configuration
 
-Once the server has been hardened, the configuration should be tested. The [OWASP Testing Guide chapter on SSL/TLS Testing](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_SSL_TLS_Ciphers_Insufficient_Transport_Layer_Protection.html) contains further information on testing.
+Once the server has been hardened, the configuration should be tested. The [OWASP Testing Guide chapter on SSL/TLS Testing](https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/01-Testing_for_Weak_Transport_Layer_Security) contains further information on testing.
 
 There are a number of online tools that can be used to quickly validate the configuration of a server, including:
 
@@ -73,6 +73,8 @@ There are a number of online tools that can be used to quickly validate the conf
 - [Hardenize](https://www.hardenize.com/)
 - [ImmuniWeb](https://www.immuniweb.com/ssl/)
 - [Observatory by Mozilla](https://observatory.mozilla.org)
+- [Scanigma](https://scanigma.com)
+- [OWASP PurpleTeam](https://purpleteam-labs.com/) `cloud`
 
 Additionally, there are a number of offline tools that can be used:
 
@@ -83,6 +85,7 @@ Additionally, there are a number of offline tools that can be used:
 - [SSLyze](https://github.com/nabla-c0d3/sslyze)
 - [testssl.sh - Testing any TLS/SSL encryption](https://testssl.sh)
 - [tls-scan](https://github.com/prbinu/tls-scan)
+- [OWASP PurpleTeam](https://purpleteam-labs.com/) `local`
 
 ## Certificates
 
@@ -90,7 +93,7 @@ Additionally, there are a number of offline tools that can be used:
 
 The private key used to generate the cipher key must be sufficiently strong for the anticipated lifetime of the private key and corresponding certificate. The current best practice is to select a key size of at least 2048 bits. Additional information on key lifetimes and comparable key strengths can be found [here](http://www.keylength.com/en/compare/) and in [NIST SP 800-57](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r4.pdf).
 
-The private key should also be protected from unauthorised access using filesystem permissions and other technical and administrative controls.
+The private key should also be protected from unauthorized access using filesystem permissions and other technical and administrative controls.
 
 ### Use Strong Cryptographic Hashing Algorithms
 
@@ -137,7 +140,7 @@ For internal applications, an internal CA can be used. This means that the FQDN 
 
 ### Use CAA Records to Restrict Which CAs can Issue Certificates
 
-Certification Authority Authorization (CAA) DNS records can be used to define which CAs are permitted to issue certificates for a domain. The records contains a list of CAs, and any CA who is not included in that list should refuse to issue a certificate for the domain. This can help to prevent an attacker from obtaining unauthorised certificates for a domain through a less-reputable CA. Where it is applied to all subdomains, it can also be useful from an administrative perspective by limiting which CAs administrators or developers are able to use, and by preventing them from obtaining unauthorised wildcard certificates.
+Certification Authority Authorization (CAA) DNS records can be used to define which CAs are permitted to issue certificates for a domain. The records contains a list of CAs, and any CA who is not included in that list should refuse to issue a certificate for the domain. This can help to prevent an attacker from obtaining unauthorized certificates for a domain through a less-reputable CA. Where it is applied to all subdomains, it can also be useful from an administrative perspective by limiting which CAs administrators or developers are able to use, and by preventing them from obtaining unauthorized wildcard certificates.
 
 ### Always Provide All Needed Certificates
 

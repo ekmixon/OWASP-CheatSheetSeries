@@ -15,7 +15,7 @@ Application logging should be always be included for security events. Applicatio
 - Identifying security incidents
 - Monitoring policy violations
 - Establishing baselines
-- Assisting non-repudiation controls
+- Assisting non-repudiation controls (note that the trait non-repudiation is hard to achieve for logs because their trustworthiness is often just based on the logging party being audited properly while mechanisms like digital signatures are hard to utilize here)
 - Providing information about problems and unusual conditions
 - Contributing additional application-specific data for incident investigation which is lacking in other log sources
 - Helping defend against vulnerability identification and exploitation through attack detection
@@ -196,7 +196,7 @@ In some systems, sanitization can be undertaken post log collection, and prior t
 It may be desirable to be able to alter the level of logging (type of events based on severity or threat level, amount of detail recorded). If this is implemented, ensure that:
 
 - The default level must provide sufficient detail for business needs
-- It should not be possible to completely inactivate application logging or logging of events that are necessary for compliance requirements
+- It should not be possible to completely deactivate application logging or logging of events that are necessary for compliance requirements
 - Alterations to the level/extent of logging must be intrinsic to the application (e.g. undertaken automatically by the application based on an approved algorithm) or follow change management processes (e.g. changes to configuration data, modification of source code)
 - The logging level must be verified periodically
 
@@ -206,7 +206,7 @@ If your development framework supports suitable logging mechanisms use, or build
 
 Document the interface referencing the organisation-specific event classification and description syntax requirements.
 
-If possible create this log handler as a standard module that can is thoroughly tested, deployed in multiple application, and added to a list of approved & recommended modules.
+If possible create this log handler as a standard module that can be thoroughly tested, deployed in multiple applications, and added to a list of approved & recommended modules.
 
 - Perform input validation on event data from other trust zones to ensure it is in the correct format (and consider alerting and not logging if there is an input validation failure)
 - Perform sanitization on all event data to prevent log injection attacks e.g. carriage return (CR), line feed (LF) and delimiter characters (and optionally to remove sensitive data)
@@ -287,6 +287,41 @@ The logged event data needs to be available to review and there are processes in
 Log data, temporary debug logs, and backups/copies/extractions, must not be destroyed before the duration of the required data retention period, and must not be kept beyond this time.
 
 Legal, regulatory and contractual obligations may impact on these periods.
+
+## Attacks on Logs
+
+Because of their usefulness as a defense, logs may be a target of attacks. See also OWASP [Log Injection](https://owasp.org/www-community/attacks/Log_Injection) and [CWE-117](https://cwe.mitre.org/data/definitions/117.html).
+
+### Confidentiality
+
+Who should be able to read what? A confidentiality attack enables an unauthorized party to access sensitive information stored in logs.
+
+- Logs contain PII of users. Attackers gather PII, then either release it or use it as a stepping stone for further attacks on those users.
+- Logs contain technical secrets such as passwords. Attackers use it as a stepping stone for deeper attacks.
+
+### Integrity
+
+Which information should be modifiable by whom?
+
+- An attacker with read access to a log uses it to exfiltrate secrets.
+- An attack leverages logs to connect with exploitable facets of logging platforms, such as sending in a payload over syslog in order to cause an out-of-bounds write.
+
+### Availability
+
+What downtime is acceptable?
+
+- An attacker floods log files in order to exhaust disk space available for non-logging facets of system functioning. For example, the same disk used for log files might be used for SQL storage of application data.
+- An attacker floods log files in order to exhaust disk space available for further logging.
+- An attacker uses one log entry to destroy other log entries.
+- An attacker leverages poor performance of logging code to reduce application performance
+
+### Accountability
+
+Who is responsible for harm?
+
+- An attacker prevent writes in order to cover their tracks.
+- An attacker prevent damages the log in order to cover their tracks.
+- An attacker causes the wrong identity to be logged in order to conceal the responsible party.
 
 ## Related articles
 

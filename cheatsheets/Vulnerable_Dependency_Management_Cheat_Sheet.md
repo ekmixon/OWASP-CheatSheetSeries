@@ -175,11 +175,11 @@ In all cases, here, we need to handle the vulnerability right now.
 
 **Step 2:**
 
-As we know the vulnerable dependency, we know where it is used in the application (if it's a transitive dependency then we can identify the first level dependency using it using the [IDE](https://en.wikipedia.org/wiki/Integrated_development_environment) built-in feature or the dependency management system used (Maven, Gradle, Nuget, npm, etc.). Note that IDE is also used to identify the calls to the dependency.
+As we know the vulnerable dependency, we know where it is used in the application (if it's a transitive dependency then we can identify the first level dependency using it using the [IDE](https://en.wikipedia.org/wiki/Integrated_development_environment) built-in feature or the dependency management system used (Maven, Gradle, NuGet, npm, etc.). Note that IDE is also used to identify the calls to the dependency.
 
 Identifying calls to this dependency is fine but it is the first step. The team still lacks information on what kind of patching needs to be performed.
 
-To obtain these informations, the team uses the CVE content to know which kind of vulnerability affects the dependency. The `description` property provides the answer: SQL injection, Remote Code Execution, Cross-Site Scripting, Cross-Site Request Forgery, etc.
+To obtain these information, the team uses the CVE content to know which kind of vulnerability affects the dependency. The `description` property provides the answer: SQL injection, Remote Code Execution, Cross-Site Scripting, Cross-Site Request Forgery, etc.
 
 After identifying the above 2 points, the team is aware of the type of patching that needs to be taken ([Case 2](#case-2) with the protective code) and where to add it.
 
@@ -242,6 +242,9 @@ It's important to ensure, during the selection process of a vulnerable dependenc
         - Full support: NodeJS, JavaScript.
         - HTML report available via this [module](https://www.npmjs.com/package/npm-audit-html).
     - [OWASP Dependency Track](https://dependencytrack.org/) can be used to manage vulnerable dependencies across an organization.
+    - [ThreatMapper](https://github.com/deepfence/ThreatMapper)
+        - Full support: Base OS, Java, NodeJS, JavaScript, Ruby, Python
+        - Targets: Kubernetes (nodes and container), Docker (node and containers), Fargate (containers), Bare Metal/VM (Host and app)
 - Commercial
     - [Snyk](https://snyk.io/) (open source and free option available):
         - [Full support](https://snyk.io/docs/) for many languages and package manager.

@@ -37,7 +37,7 @@ Input validation can be implemented using any programming technique that allows 
 
 It is a common mistake to use block list validation in order to try to detect possibly dangerous characters and patterns like the apostrophe `'` character, the string `1=1`, or the `<script>` tag, but this is a massively flawed approach as it is trivial for an attacker to bypass such filters.
 
-Plus, such filters frequently prevent authorized input, like `O'Brian`, where the `'` character is fully legitimate. For more information on XSS filter evasion please see the [this wiki page](https://owasp.org/www-community/xss-filter-evasion-cheatsheet).
+Plus, such filters frequently prevent authorized input, like `O'Brian`, where the `'` character is fully legitimate. For more information on XSS filter evasion please see [this wiki page](https://owasp.org/www-community/xss-filter-evasion-cheatsheet).
 
 Allow list validation is appropriate for all input fields provided by the user. Allow list validation involves defining exactly what IS authorized, and by definition, everything else is not authorized.
 
@@ -67,13 +67,13 @@ Developing regular expressions can be complicated, and is well beyond the scope 
 
 There are lots of resources on the internet about how to write regular expressions, including this [site](https://www.regular-expressions.info/) and the [OWASP Validation Regex Repository](https://owasp.org/www-community/OWASP_Validation_Regex_Repository).
 
-When designing regular expression, be aware of (RegEx Denial of Service (ReDoS) attacks)[https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS]. These attacks cause a program using a poorly designed Regular Expression to operate very slowly and utilize CPU resources for a very long time.
+When designing regular expression, be aware of [RegEx Denial of Service (ReDoS) attacks](https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS). These attacks cause a program using a poorly designed Regular Expression to operate very slowly and utilize CPU resources for a very long time.
 
 In summary, input validation should:
 
 - Be applied to all input data, at minimum.
 - Define the allowed set of characters to be accepted.
-- Define a minimum and maximum length for the data (e.g. `{1,25}` ).
+- Define a minimum and maximum length for the data (e.g. `{1,25}`).
 
 ## Allow List Regular Expression Examples
 

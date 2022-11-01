@@ -12,7 +12,7 @@ The .NET Framework is Microsoft's principal platform for enterprise development.
 
 The .NET Framework is kept up-to-date by Microsoft with the Windows Update service. Developers do not normally need to run separate updates to the Framework. Windows Update can be accessed at [Windows Update](http://windowsupdate.microsoft.com/) or from the Windows Update program on a Windows computer.
 
-Individual frameworks can be kept up to date using [NuGet](http://nuget.codeplex.com/wikipage?title=Getting%20Started&referringTitle=Home). As Visual Studio prompts for updates, build it into your lifecycle.
+Individual frameworks can be kept up to date using [NuGet](https://docs.microsoft.com/en-us/nuget/). As Visual Studio prompts for updates, build it into your lifecycle.
 
 Remember that third-party libraries have to be updated separately and not all of them use NuGet. ELMAH for instance, requires a separate update effort.
 
@@ -48,14 +48,14 @@ The .NET Framework is the set of APIs that support an advanced type system, data
     - In .NET Core the strongest algorithm for password hashing is PBKDF2, implemented as [Microsoft.AspNetCore.Cryptography.KeyDerivation.Pbkdf2](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing) which has several significant advantages over `Rfc2898DeriveBytes`.
     - When using a hashing function to hash non-unique inputs such as passwords, use a salt value added to the original value before hashing.
 - Make sure your application or protocol can easily support a future change of cryptographic algorithms.
-- Use [Nuget](https://docs.microsoft.com/en-us/nuget/) to keep all of your packages up to date. Watch the updates on your development setup, and plan updates to your applications accordingly.
+- Use [NuGet](https://docs.microsoft.com/en-us/nuget/) to keep all of your packages up to date. Watch the updates on your development setup, and plan updates to your applications accordingly.
 
 ### General
 
 - Lock down the config file.
     - Remove all aspects of configuration that are not in use.
     - Encrypt sensitive parts of the `web.config` using `aspnet_regiis -pe` ([command line help](https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-2.0/k6h9cz8h(v=vs.80))).
-- For Click Once applications the .Net Framework should be upgraded to use version `4.6.2` to ensure `TLS 1.1/1.2` support.
+- For Click Once applications, the .NET Framework should be upgraded to use the latest version to ensure `TLS 1.2` or later support.
 
 ## ASP NET Web Forms Guidance
 
@@ -120,8 +120,7 @@ protected void master_Page_PreLoad(object sender, EventArgs e)
     else
     {
        // Validate the Anti-XSRF token
-
-if ((string)ViewState[AntiXsrfTokenKey] != _antiXsrfTokenValue ||
+       if ((string)ViewState[AntiXsrfTokenKey] != _antiXsrfTokenValue ||
           (string)ViewState[AntiXsrfUserNameKey] != (Context.User.Identity.Name ?? String.Empty))
        {
           throw new InvalidOperationException("Validation of Anti-XSRF token failed.");
@@ -185,13 +184,13 @@ if ((string)ViewState[AntiXsrfTokenKey] != _antiXsrfTokenValue ||
  </configuration>
 ```
 
-- Remove the version header.
+- Remove the version header by adding the following line in `Machine.config` file:
 
 ```xml
 <httpRuntime enableVersionHeader="false" />
 ```
 
-- Also remove the Server header.
+- Also remove the Server header using the HttpContext Class in your code.
 
 ```csharp
 HttpContext.Current.Response.Headers.Remove("Server");
@@ -259,22 +258,24 @@ DO: Practice Least Privilege - Connect to the database using an account with a m
 
 #### OS Injection
 
-Information about OS Injection can be found on this [cheat sheet](OS_Command_Injection_Defense_Cheat_Sheet.md#net).
+General guidance about OS Injection can be found on this [cheat sheet](OS_Command_Injection_Defense_Cheat_Sheet.md).
 
 DO: Use [System.Diagnostics.Process.Start](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process.start?view=netframework-4.7.2) to call underlying OS functions.
 
 e.g
 
 ``` csharp
-System.Diagnostics.Process process = new System.Diagnostics.Process();
-System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+var process = new System.Diagnostics.Process();
+var startInfo = new System.Diagnostics.ProcessStartInfo();
 startInfo.FileName = "validatedCommand";
 startInfo.Arguments = "validatedArg1 validatedArg2 validatedArg3";
 process.StartInfo = startInfo;
 process.Start();
 ```
 
-DO: Use allow-list validation on all user supplied input. Input validation prevents improperly formed data from entering an information system. For more information please see the [Input Validation Cheat Sheet](Input_Validation_Cheat_Sheet.md).
+DO NOT: Assume that this mechanism will protect against malicious input designed to break out of one argument and then tamper with another argument to the process. This will still be possible.
+
+DO: Use allow-list validation on all user supplied input wherever possible. Input validation prevents improperly formed data from entering an information system. For more information please see the [Input Validation Cheat Sheet](Input_Validation_Cheat_Sheet.md).
 
 e.g Validating user input using [IPAddress.TryParse Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.ipaddress.tryparse?view=netframework-4.8)
 
@@ -300,6 +301,16 @@ if (!string.IsNullOrEmpty(ipAddress))
     ...
 }
 ```
+
+DO: Try to only accept characters which are simple alphanumeric.
+
+DO NOT: Assume you can sanitize special characters without actually removing them. Various combinations of ```\```, ```'``` and ```@``` may have an unexpected impact on sanitization attempts.
+
+DO NOT: Rely on methods without a security guarantee.
+
+e.g. .NET Core 2.2 and greater and .NET 5 and greater support [ProcessStartInfo.ArgumentList](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.argumentlist) which performs some character escaping but it is not clear if this is guaranteed to be secure.
+
+DO: Look at alternatives to passing raw untrusted arguments via command-line parameters such as encoding using Base64 (which would safely encode any special characters as well) and then decode the parameters in the receiving application.
 
 #### LDAP injection
 
@@ -421,11 +432,11 @@ For more information about headers can be found [here](https://owasp.org/www-pro
 
 ### A4 XML External Entities (XXE)
 
-Please refer to the XXE cheat sheet so more detailed information, which can be found [here](XML_External_Entity_Prevention_Cheat_Sheet.md#net).
-
 XXE attacks occur when an XML parse does not properly process user input that contains external entity declaration in the doctype of an XML payload.
 
-Below are the three most common [XML Processing Options](https://docs.microsoft.com/en-us/dotnet/standard/data/xml/xml-processing-options) for .NET.
+[This article](https://docs.microsoft.com/en-us/dotnet/standard/data/xml/xml-processing-options) discusses the most common XML Processing Options for .NET.
+
+Please refer to the [XXE cheat sheet](XML_External_Entity_Prevention_Cheat_Sheet.md#net) for more detailed information on preventing XXE and other XML Denial of Service attacks.
 
 ### A5 Broken Access Control
 
@@ -783,27 +794,27 @@ How to log all errors from the `Startup.cs`, so that anytime an error is thrown 
 ``` csharp
 public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 {
- if (env.IsDevelopment())
- {
-  _isDevelopment = true;
-  app.UseDeveloperExceptionPage();
+    if (env.IsDevelopment())
+    {
+        _isDevelopment = true;
+        app.UseDeveloperExceptionPage();
+    }
+
+    //Log all errors in the application
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            var errorFeature = context.Features.Get<IExceptionHandlerFeature>();
+            var exception = errorFeature.Error;
+
+            Log.Error(String.Format("Stacktrace of error: {0}",exception.StackTrace.ToString()));
+        });
+    });
+
+    app.UseAuthentication();
+    app.UseMvc();
  }
-
- //Log all errors in the application
- app.UseExceptionHandler(errorApp =>
- {
-  errorApp.Run(async context =>
-  {
-      var errorFeature = context.Features.Get<IExceptionHandlerFeature>();
-      var exception = errorFeature.Error;
-
-      Log.Error(String.Format("Stacktrace of error: {0}",exception.StackTrace.ToString()));
-  });
- });
-
-        app.UseAuthentication();
-            app.UseMvc();
-        }
 }
 ```
 
@@ -819,7 +830,7 @@ public class AccountsController : Controller
             _Logger = logger;
         }
 
- [HttpPost]
+        [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -829,18 +840,18 @@ public class AccountsController : Controller
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-   //Log all successful log in attempts
-   Log.Information(String.Format("User: {0}, Successfully Logged in", model.Email));
-   //Code for successful login
-  }
-  else
-  {
-   //Log all incorrect log in attempts
-   Log.Information(String.Format("User: {0}, Incorrect Password", model.Email));
-  }
- }
-
- ...
+                    //Log all successful log in attempts
+                    Log.Information(String.Format("User: {0}, Successfully Logged in", model.Email));
+                    //Code for successful login
+                }
+                else
+                {
+                //Log all incorrect log in attempts
+                Log.Information(String.Format("User: {0}, Incorrect Password", model.Email));
+                }
+             }
+            ...
+        }
 ```
 
 Logging levels for ILogger are listed below, in order of high to low importance:

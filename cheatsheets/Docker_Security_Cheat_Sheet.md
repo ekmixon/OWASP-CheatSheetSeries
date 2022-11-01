@@ -18,7 +18,7 @@ In addition, containers (unlike in virtual machines) share the kernel with the h
 
 Docker socket */var/run/docker.sock* is the UNIX socket that Docker is listening to. This is the primary entry point for the Docker API. The owner of this socket is root. Giving someone access to it is equivalent to giving unrestricted root access to your host.
 
-**Do not enable *tcp* Docker daemon socket.** If you are running docker daemon with `-H tcp://0.0.0.0:XXX` or similar you are exposing un-encrypted and un-authenticated direct access to the Docker daemon.
+**Do not enable *tcp* Docker daemon socket.** If you are running docker daemon with `-H tcp://0.0.0.0:XXX` or similar you are exposing un-encrypted and unauthenticated direct access to the Docker daemon, if the host is internet connected this means the docker daemon on your computer can be used by anyone from the public internet.
 If you really, **really** have to do this, you should secure it. Check how to do this [following Docker official documentation](https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-socket-option).
 
 **Do not expose */var/run/docker.sock* to other containers**. If you are running your docker image with `-v /var/run/docker.sock://var/run/docker.sock` or similar, you should change it. Remember that mounting the socket read-only is not a solution but only makes it harder to exploit. Equivalent in the docker-compose file is something like this:
@@ -34,18 +34,18 @@ Configuring the container to use an unprivileged user is the best way to prevent
 
 1. During runtime using `-u` option of `docker run` command e.g.:
 
-```bash
-docker run -u 4000 alpine
-```
+    ```bash
+    docker run -u 4000 alpine
+    ```
 
 2. During build time. Simple add user in Dockerfile and use it. For example:
 
-```docker
-FROM alpine
-RUN groupadd -r myuser && useradd -r -g myuser myuser
-<HERE DO WHAT YOU HAVE TO DO AS A ROOT USER LIKE INSTALLING PACKAGES ETC.>
-USER myuser
-```
+    ```docker
+    FROM alpine
+    RUN groupadd -r myuser && useradd -r -g myuser myuser
+    <HERE DO WHAT YOU HAVE TO DO AS A ROOT USER LIKE INSTALLING PACKAGES ETC.>
+    USER myuser
+    ```
 
 3. Enable user namespace support (`--userns-remap=default`) in [Docker daemon](https://docs.docker.com/engine/security/userns-remap/#enable-userns-remap-on-the-daemon)
 
@@ -220,6 +220,7 @@ To detect containers with known vulnerabilities - scan images using static analy
 
 - Free
     - [Clair](https://github.com/coreos/clair)
+    - [ThreatMapper](https://github.com/deepfence/ThreatMapper)
     - [Trivy](https://github.com/knqyf263/trivy)
 - Commercial
     - [Snyk](https://snyk.io/) **(open source and free option available)**
@@ -227,6 +228,11 @@ To detect containers with known vulnerabilities - scan images using static analy
     - [Aqua Security's MicroScanner](https://github.com/aquasecurity/microscanner) **(free option available for rate-limited number of scans)**
     - [JFrog XRay](https://jfrog.com/xray/)
     - [Qualys](https://www.qualys.com/apps/container-security/)
+
+To detect secrets in images:
+
+- [ggshield](https://github.com/GitGuardian/ggshield) **(open source and free option available)**
+- [SecretScanner](https://github.com/deepfence/SecretScanner) **(open source)**
 
 To detect misconfigurations in Kubernetes:
 
@@ -238,6 +244,7 @@ To detect misconfigurations in Docker:
 
 - [inspec.io](https://www.inspec.io/docs/reference/resources/docker/)
 - [dev-sec.io](https://dev-sec.io/baselines/docker/)
+- [Docker Bench for Security](https://github.com/docker/docker-bench-security)
 
 ### RULE \#10 - Set the logging level to at least INFO
 
@@ -251,7 +258,7 @@ docker-compose --log-level info up
 
 ### Rule \#11 - Lint the Dockerfile at build time
 
-Many issues can be prevented by following some best practices when writing the Dockerfile. Adding a security linter as a step in the the build pipeline can go a long way in avoiding further headaches. Some issues that are worth checking are:
+Many issues can be prevented by following some best practices when writing the Dockerfile. Adding a security linter as a step in the build pipeline can go a long way in avoiding further headaches. Some issues that are worth checking are:
 
 - Ensure a `USER` directive is specified
 - Ensure the base image version is pinned

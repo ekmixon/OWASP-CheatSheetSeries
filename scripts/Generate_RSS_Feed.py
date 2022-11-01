@@ -6,6 +6,7 @@ See https://github.com/OWASP/CheatSheetSeries/issues/186
 Do not require to have a local copy of the GitHub repository.
 Dependencies: pip install requests feedgen
 """
+
 import sys
 import json
 from datetime import datetime
@@ -22,12 +23,18 @@ PR_API = "https://api.github.com/repos/OWASP/CheatSheetSeries/pulls?page=1&per_p
 print("[+] Grab the list of closed PR via the GitHub API...")
 response = requests.get(PR_API)
 if response.status_code != 200:
-    print("Cannot load the list of PR content: HTTP %s received!" %  response.status_code)
+    print(
+        f"Cannot load the list of PR content: HTTP {response.status_code} received!"
+    )
+
     sys.exit(1)
 pull_requests = response.json()
 
 # Process the obtained list and generate the feed in memory
-print("[+] Process the obtained list and generate the feed in memory (%s) items)..." % len(pull_requests))
+print(
+    f"[+] Process the obtained list and generate the feed in memory ({len(pull_requests)}) items)..."
+)
+
 feed_generator = FeedGenerator()
 current_date = datetime.utcnow().strftime("%a, %d %B %Y %H:%M:%S GMT")  # Sun, 19 May 2002 15:21:36 GMT
 feed_generator.id("https://cheatsheetseries.owasp.org/")
@@ -54,9 +61,14 @@ for pull_request in pull_requests:
     feed_entry.link({"href": pull_request["html_url"], "rel": "alternate"})
     feed_entry.pubDate(merge_date_dst)
     feed_entry.updated(merge_date_dst)
-    contributors = []
-    for assignee in pull_request["assignees"]:
-        contributors.append({"name": assignee["login"], "uri": "https://github.com/%s" % assignee['login']})
+    contributors = [
+        {
+            "name": assignee["login"],
+            "uri": f"https://github.com/{assignee['login']}",
+        }
+        for assignee in pull_request["assignees"]
+    ]
+
     feed_entry.contributor(contributors)
 
 # Save the feed to a XML file

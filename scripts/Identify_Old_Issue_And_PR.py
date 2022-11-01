@@ -41,19 +41,17 @@ def is_old_issue(issue):
     return has_assignees and (not has_help_wanted_label and not has_internal_label)
 
 def is_old_pull_request(issue):
-    has_waiting_for_update_label = False
     labels = issue["labels"]
-    for label in labels:
-        if label["name"] == "WAITING_UPDATE":
-            has_waiting_for_update_label = True
-            break
-    return has_waiting_for_update_label
+    return any(label["name"] == "WAITING_UPDATE" for label in labels)
 
 # Grab the list of open Issues/PR
 buffer = "Grab the list of open Issues/PR via the GitHub API...\n"
 response = requests.get(ISSUE_API)
 if response.status_code != 200:
-    print("Cannot load the list of Issues/PR content: HTTP %s received!" % response.status_code)
+    print(
+        f"Cannot load the list of Issues/PR content: HTTP {response.status_code} received!"
+    )
+
     sys.exit(1)
 issues = response.json()
 
@@ -64,7 +62,7 @@ old_issues = {"PR":[], "ISSUE":[]}
 for issue in issues:
     # Date format is 2019-08-24T15:29:55Z
     last_update = datetime.strptime(issue["updated_at"], "%Y-%m-%dT%H:%M:%SZ")
-    diff_in_months = round(abs((datetime.today() - last_update).days / 30))
+    diff_in_months = round(abs((datetime.now() - last_update).days / 30))
     if diff_in_months > MAX_MONTHS_ALLOWED:
         id = str(issue["number"])
         if "pull_request" in issue and is_old_pull_request(issue):
@@ -93,5 +91,8 @@ if len(sys.argv) == 2:
     request_headers = {"Content-Type": "application/json"}
     response = requests.post(sys.argv[1], headers=request_headers, data=message)
     if response.status_code != 200:
-        print("Cannot send notification to slack: HTTP %s received!" % response.status_code)
+        print(
+            f"Cannot send notification to slack: HTTP {response.status_code} received!"
+        )
+
         sys.exit(2)

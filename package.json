@@ -6,7 +6,7 @@
   "dependencies": {},
   "devDependencies": {
     "markdownlint-cli": "^0.27.1",
-    "textlint": "^11.6.3",
+    "textlint": "^12.0.0",
     "textlint-filter-rule-comments": "^1.2.2",
     "textlint-filter-rule-whitelist": "^2.0.0",
     "textlint-rule-terminology": "^3.0.0"

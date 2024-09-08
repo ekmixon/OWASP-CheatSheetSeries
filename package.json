@@ -5,11 +5,11 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
-    "markdownlint-cli": "^0.31.0",
-    "textlint": "^12.0.0",
+    "markdownlint-cli": "^0.41.0",
+    "textlint": "^14.2.0",
     "textlint-filter-rule-comments": "^1.2.2",
     "textlint-filter-rule-whitelist": "^2.0.0",
-    "textlint-rule-terminology": "^3.0.0"
+    "textlint-rule-terminology": "^5.2.6"
   },
   "scripts": {
     "test": "npm run lint-markdown && npm run lint-terminology",
